@@ -24,7 +24,7 @@ sess = session.Session(auth=auth)
 
 #---------- Compute Client -----------------------#
 nova = client.Client('2.1', session=sess)
-
+print(nova.glance.list())
 #show_attr(nova)
 #print("------------------------------------")
 #print(nova.glance.list())
