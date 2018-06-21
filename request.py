@@ -58,6 +58,7 @@ def authorize(username, password, domain, project_id, auth_url):
 
 HEADERS = {'X-Auth-Token': authorize(USERNAME, PASSWORD, DOMAIN, PROJECT_ID, AUTH_URL) }
 
+#------------ Compute Methods ------------------------------#
 def list_servers():
 	url = BASE_URL+"/compute/v2.1/servers"
 	r = requests.get(url,headers=HEADERS)
@@ -74,24 +75,6 @@ def filter_flavor(conds):
 	r = requests.get(url+data,headers=HEADERS)
 	return handle_response(r)["flavors"]
 
-def get_network(name):
-	url = BASE_URL+":9696/v2.0/networks?name="+name
-	r = requests.get(url,headers=HEADERS)
-	return handle_response(r)["networks"][0]
-
-def create_subnet(network_id,cidr):
-	url = BASE_URL+":9696/v2.0/subnets"
-	data={
-		"subnet": {
-			"network_id":network_id,
-			"ip_version": 4,
-			"cidr":cidr
-		}
-	}
-	r = requests.post(url,json=data,headers=HEADERS)
-	handle_response(r)
-
-
 def create_nova(server_name,image_id,flavor_id,network_id):
 	url = BASE_URL+"/compute/v2.1/servers"
 	data = {
@@ -106,31 +89,62 @@ def create_nova(server_name,image_id,flavor_id,network_id):
 	}
 	r = requests.post(url,json=data,headers=HEADERS)
 	handle_response(r)
+#------------------ Neutron Methods -----------------------#
+def get_network(name):
+	url = BASE_URL+":9696/v2.0/networks?name="+name
+	r = requests.get(url,headers=HEADERS)
+	return handle_response(r)["networks"][0]
 
+def edit_network(network_id,edit_dict):
+	url = BASE_URL+":9696/v2.0/networks/"+network_id
+	r = requests.put(url,json=data,headers=HEADERS)
+	handle_response(r)
 
+def create_subnet(network_id,cidr):
+	url = BASE_URL+":9696/v2.0/subnets"
+	data={
+		"subnet": {
+			"network_id":network_id,
+			"ip_version": 4,
+			"cidr":cidr
+		}
+	}
+	r = requests.post(url,json=data,headers=HEADERS)
+	handle_response(r)
+
+edit_network_data = {
+	"network" : {
+		"router:external" : True
+	}
+}
+#------------------- Glance Methods ----------------------#
+create_image_data = {
+    "container_format": "bare",
+    "disk_format": "raw",
+    "name": "Ubuntu",
+    "visibilty" : "public",
+    "name" : "my-image",
+}
+def create_image(image_creds):
+	url = BASE_URL+"/image/v2/images"
+	r = requests.post(url,json=data,headers=HEADERS)
+	handle_response(r)
+
+def list_images():
+	url = BASE_URL+"/image/v2/images"
+	r = requests.get(url,headers=HEADERS)
+	handle_response(r)
+
+list_images()
+#get_network("public")
+#edit_network(get_network("mynetwork")["id"],data)
 
 #create_subnet(get_network("mynetwork")["id"],"192.168.20.0/24")
 
-# 1- Get Flavor
 #flavor = filter_flavor({"minRam":"512","limit":"1"})[0]["id"]
 
-create_nova("new-server2","6eff6563-714d-4423-921c-59c9961dce51",filter_flavor({"minRam":"512","limit":"1"})[0]["id"],get_network("mynetwork")["id"])
+#create_nova("new-server2","6eff6563-714d-4423-921c-59c9961dce51",filter_flavor({"minRam":"512","limit":"1"})[0]["id"],get_network("mynetwork")["id"])
 
 
-# url = " http://192.168.20.131/image/v2/images"
-# headers = {'X-Auth-Token': TOKEN}
-# data={
-# 	"container_format": "bare",
-#     "disk_format": "raw",
-#     "name": "Ubuntu",
-# }
-# r = requests.get(url,headers=headers)
-# print(r.status_code)
-# if(r.status_code < 400):
-# 	#print(json.dumps(r.json(), sort_keys=True,indent=4, separators=(',', ': ')))
-# 	print(r.headers)
-# 	print(r.json())
-# 	#token_data = r.json()
-# else:
-# 	print(r.text)
+
 
