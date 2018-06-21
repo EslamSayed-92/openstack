@@ -76,8 +76,21 @@ def filter_flavor(conds):
 
 def get_network(name):
 	url = BASE_URL+":9696/v2.0/networks?name="+name
+	r = requests.get(url,headers=HEADERS)
+	return handle_response(r)["networks"][0]
+
+def create_subnet(network_id,cidr):
+	url = BASE_URL+":9696/v2.0/subnets"
+	data={
+		"subnet": {
+			"network_id":network_id,
+			"ip_version": 4,
+			"cidr":cidr
+		}
+	}
 	r = requests.post(url,json=data,headers=HEADERS)
 	handle_response(r)
+
 
 def create_nova(server_name,image_id,flavor_id,network_id):
 	url = BASE_URL+"/compute/v2.1/servers"
@@ -95,12 +108,13 @@ def create_nova(server_name,image_id,flavor_id,network_id):
 	handle_response(r)
 
 
-get_network("mynetwork")
+
+#create_subnet(get_network("mynetwork")["id"],"192.168.20.0/24")
 
 # 1- Get Flavor
 #flavor = filter_flavor({"minRam":"512","limit":"1"})[0]["id"]
 
-#create_nova("new-server","6eff6563-714d-4423-921c-59c9961dce51","1","4f60cbed-e98c-49b1-b5a6-97923d684418")
+create_nova("new-server2","6eff6563-714d-4423-921c-59c9961dce51",filter_flavor({"minRam":"512","limit":"1"})[0]["id"],get_network("mynetwork")["id"])
 
 
 # url = " http://192.168.20.131/image/v2/images"
